@@ -35,12 +35,21 @@ Code is stored in ```./minimetagenomics/``` with scripts and Snakemake-enabled w
 -----
 ## :dna: :microscope: Comparative Genomic Analysis
 
+- ***Genome-scale metabolic modeling (GEMs) establishement and curation***
+  - Establish from ```.faa``` file using [CarveMe](https://carveme.readthedocs.io/en/latest/usage.html)
+  - Improve and check quality of the GEM models using [MEMOTE](https://github.com/opencobra/memote)
+  - Optimize and incorporate the *ppk* and *ppx* reactions into the GEMs if the genes are detected within the genome
+using [COBRApy](https://cobrapy.readthedocs.io/en/latest/)
+
+- ***Microbial metabolic & ecological interaction analysis ***
+  - Microbial metabolic interaction based on GEMs using [SMETANA](https://github.com/cdanielmachado/smetana)
+
 Code is stored in ```./compgenome/``` with workflow in JupyterNoteBook for comparative analysis, 
 
 with file names labeled by figure number to achieve data mining, analysis, and visualization.
 
 Figure 1 for pipeline and Figure 4 for PAO metabolic models are designed by Microsoft Powerpoint.
-  
+
 -----
 ## :toolbox: :computer: Operon Analysis
 
