@@ -37,8 +37,7 @@ Code is stored in ```./minimetagenomics/``` with scripts and Snakemake-enabled w
 
 Code is stored in ```./compgenome/``` with workflow in JupyterNoteBook for comparative analysis, 
 
-with file names labeled by figure number. 
-
+with file names labeled by figure number to achieve data mining, analysis, and visualization.
 
 Figure 1 for pipeline and Figure 4 for PAO metabolic models are designed by Microsoft Powerpoint.
   
