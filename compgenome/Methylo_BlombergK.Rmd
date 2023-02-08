@@ -1,0 +1,101 @@
+---
+title: "Methylo_BlombergK"
+author: "Zijian Leo Wang"
+date: "9/19/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Computing the phosphorus-relevant gene evolution
+```{r package and function}
+  library(picante)
+  library(pracma) # for pinv
+  library(treeio)
+  library(ggplot2)
+  library(stringr)
+  library(geiger) # for tree rescale
+###### Blomberg K calculation adapted from package picante
+  Customized_Kcalc <- function (phy, x, n, checkdata = TRUE,revised=FALSE) 
+  {#n is the number of tips being removed
+    if (checkdata) {
+      dat <- match.phylo.data(phy, x)
+      x <- dat$data
+      phy <- dat$phy
+    }
+    dat2 <- data.frame(x = x) # ref
+    mat <- vcv.phylo(phy) 
+    dat2$vars <- diag(mat)
+    matc <- vcv.phylo(phy, corr = TRUE)
+    ntax <- length(phy$tip.label)
+    fit <- gls(x ~ 1, correlation = corSymm(matc[lower.tri(matc)], 
+      fixed = TRUE), weights = varFixed(~vars), data = dat2)
+    ahat <- coef(fit)
+    MSE <- fit$sigma^2 # ref
+    MSE0 <- t(x - ahat) %*% (x - ahat)/(ntax - 1) # t is matrix transpose
+    ExpectMSE0.MSE <- 1/(ntax - 1) * (sum(diag(mat)) - ntax/sum(pinv(mat)))
+    if (revised==FALSE){
+      K <- (MSE0/MSE)/ExpectMSE0.MSE # observed/expected
+    }
+    else{
+      K <- (MSE0/MSE)/ExpectMSE0.MSE * (1-n)
+    }
+    
+    return(K)
+  }
+    ######### Permutational Blomberg K
+  KcalcM <- function(randtree,randtraits,check, revised = FALSE){
+    # randtraits is the ref
+    # randtree is the signal to be measured over ref
+    # revised ==TRUE means to calculate the K with penalty for lack of tips in certain tree
+   #set.seed(12)
+  # align the names first
+  dat <- match.phylo.data(randtree, randtraits)
+  
+  n = abs(length(a$phy$tip.label)-length(randtree$tip.label) )/max(length(a$phy$tip.label),length(randtree$tip.label))# how many percent of tips removed
+  print(paste("phy tree",length(a$phy$tip.label),"randtree ",length(randtree$tip.label),"n percent",n))
+  randtraits <- dat$data
+  randtree <- dat$phy
+  
+  Label <- randtree$tip.label
+  Label2 <- Label
+  permutation <- 999
+  Kvec <- rep(0,permutation)
+  for (i in 1:permutation){
+    Kvec[i] <- Customized_Kcalc(randtree,randtraits[Label2],n, checkdata = check,revised=revised)
+    #print(Label2,Kvalue)
+  Label2 <- sample(Label2) # Sample the label by reordering it
+  percent <- length(Kvec[Kvec>=Kvec[1]])/length(Kvec)#percent of observed value
+  }
+  return (list(percent,Kvec,dat))
+  }
+  
+```
+## read trees and compute p and k using method of OU
+```{r read trees}
+setwd('/Users/zijianleowang/Desktop/Projects_in_Cornell/RACE/comparative_genomics')
+name = c("ppk1.raxml.bestTree","ppk2.raxml.bestTree",
+            "ppx.raxml.bestTree","pap.raxml.bestTree",
+            "pit.raxml.bestTree","phoU.raxml.bestTree",
+            "pstS.raxml.bestTree","pstA_C.raxml.bestTree",
+            "pstB.raxml.bestTree","allPgenes.raxml.bestTree")
+ref = read.newick("marker-gene-tree.newick") # ref tree
+df.pk = data.frame(matrix(ncol=length(name),nrow=2)) # dataframe to save p and k values
+colnames(df.pk) = name
+for (param in c(0.4,0.5,0.6)){
+  for (i in 1:length(name)){
+    treei = read.newick(name[i])
+    transformed.treei = rescale(treei,'OU')(param) #rescale the tree via method OU and parameter of .5
+    revised=TRUE
+    output = KcalcM(transformed.treei,rTraitCont(ref),revised = revised,TRUE)
+    p = output[1][[1]][1]
+    k = output[2][[1]][1][1]
+    namei = paste(name[i][1])
+    df.pk[1,i] = p
+    df.pk[2,i]= k
+  }
+  write.csv(df.pk,paste(revised,"correlation",param,".csv",sep=""))
+}
+
+```
