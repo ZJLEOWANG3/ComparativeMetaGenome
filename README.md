@@ -39,4 +39,9 @@ Code is stored in ```./compgenome/``` with workflow in JupyterNoteBook for compa
 
 
   
+-----
+## :toolbox: :computer: Operon Analysis
 
+Online web server was applied based on ```Operon Mapper``` published in [Bioinformatics](https://academic.oup.com/bioinformatics/article/34/23/4118/5040321). 
+
+This is applied with the aim to identify operon for *ppk* and *ppx*
